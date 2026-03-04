@@ -1,71 +1,48 @@
-local config_ok, lsp_config = pcall(require, "lspconfig")
-if not config_ok then
-  return
-end
+------------- LSP Keymaps via LspAttach ----------------
 
-local zero_ok, lsp_zero = pcall(require, "lsp-zero")
-if not zero_ok then
-  return
-end
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function(ev)
+    local bufnr = ev.buf
+    local map = require("utils").map
+    local lsp_map = function(modes, lhs, rhs, desc)
+      local options = { buffer = bufnr }
+      if desc then
+        options.desc = 'LSP: ' .. desc
+      end
+      map(modes, lhs, rhs, options)
+    end
 
-local lsp = lsp_zero.preset({
-  name = "recommended",
-  sign_icons = {
-    error = "",
-    warn = "",
-    hint = "",
-    info = "",
-  },
+    local telescope = require('telescope.builtin')
+    lsp_map({ 'n', 'v' }, 'gd', vim.lsp.buf.definition, '[G]o to [d]efinition')
+    lsp_map({ 'n', 'v' }, '<space><space>', vim.lsp.buf.hover, 'Hover over')
+    lsp_map({ 'n', 'v' }, 'gi', vim.lsp.buf.implementation, '[G]o to [I]mplementation')
+    lsp_map({ 'n', 'v' }, '<space>k', vim.lsp.buf.signature_help, '[S]ignature [H]elp')
+    lsp_map({ 'i' }, '<C-h>', vim.lsp.buf.signature_help, '[S]ignature [H]elp')
+    lsp_map({ 'n', 'v' }, '<space>wa', vim.lsp.buf.add_workspace_folder, 'Add Worspace Folder')
+    lsp_map({ 'n', 'v' }, '<space>wr', vim.lsp.buf.remove_workspace_folder, 'Remove Worspace Folder')
+    lsp_map({ 'n', 'v' }, '<space>wl', function()
+      print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+    end, 'Print Workspace Folder List')
+    lsp_map({ 'n', 'v' }, 'gtd', vim.lsp.buf.type_definition, 'Type Definition')
+    lsp_map({ 'n', 'v' }, '<space>d', vim.diagnostic.open_float, 'Open Line Diagnostic')
+    lsp_map({ 'n', 'v' }, '<space>rs', vim.lsp.buf.rename, '[R]ename Symbol')
+    lsp_map({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action)
+    lsp_map({ 'n', 'v' }, '<space>f', function()
+      vim.lsp.buf.format({ async = true })
+    end, '[F]ormat doc')
+    lsp_map({ 'n', 'v' }, '<F6>', vim.diagnostic.hide, 'Hide LSP suggestions')
+    lsp_map({ 'n', 'v' }, '<space>e', vim.diagnostic.open_float, 'Show Diagnostic')
+    lsp_map({ 'n', 'v' }, '[d', vim.diagnostic.goto_prev, 'Previous Diagnostic')
+    lsp_map({ 'n', 'v' }, ']d', vim.diagnostic.goto_next, 'Next Diagnostic')
+    lsp_map({ 'n', 'v' }, '<space>q', vim.diagnostic.setloclist, 'Diagnostic List')
+    lsp_map({ 'n', 'v' }, 'gr', telescope.lsp_references, 'Go to [R]eferences')
+    lsp_map({ 'n', 'v' }, '<space>qf', telescope.quickfix, '[Q]uickfix')
+    lsp_map({ 'n', 'v' }, '<space>ws', telescope.lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+    lsp_map({ 'n', 'v' }, '<space>ds', telescope.lsp_document_symbols, '[D]ocument [S]ymbols')
+  end,
 })
 
-------------- LSP Mappings ----------------
-
--- Use an on_attach function to only map the following keys
--- after the language server attaches to the current buffer
-local on_attach = function(client, bufnr)
-  local map = require("utils").map
-  local lsp_map = function(modes, lhs, rhs, desc)
-    local options = { buffer = bufnr }
-    if desc then
-      options.desc = 'LSP: ' .. desc
-    end
-    map(modes, lhs, rhs, options)
-  end
-
-  local telescope = require('telescope.builtin')
-  lsp_map({ 'n', 'v' }, 'gd', vim.lsp.buf.definition, '[G]o to [d]efinition')
-  lsp_map({ 'n', 'v' }, '<space><space>', vim.lsp.buf.hover, 'Hover over')
-  lsp_map({ 'n', 'v' }, 'gi', vim.lsp.buf.implementation, '[G]o to [I]mplementation')
-  lsp_map({ 'n', 'v' }, '<space>k', vim.lsp.buf.signature_help, '[S]ignature [H]elp')
-  lsp_map({ 'i' }, '<C-h>', vim.lsp.buf.signature_help, '[S]ignature [H]elp')
-  lsp_map({ 'n', 'v' }, '<space>wa', vim.lsp.buf.add_workspace_folder, 'Add Worspace Folder')
-  lsp_map({ 'n', 'v' }, '<space>wr', vim.lsp.buf.remove_workspace_folder, 'Remove Worspace Folder')
-  lsp_map({ 'n', 'v' }, '<space>wl', function()
-    print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-  end, 'Print Workspace Folder List')
-  lsp_map({ 'n', 'v' }, 'gtd', vim.lsp.buf.type_definition, 'Type Definition')
-  lsp_map({ 'n', 'v' }, '<space>d', vim.diagnostic.open_float, 'Open Line Diagnostic')
-  lsp_map({ 'n', 'v' }, '<space>rs', vim.lsp.buf.rename, '[R]ename Symbol')
-  lsp_map({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action)
-  lsp_map({ 'n', 'v' }, '<space>f', function()
-    vim.lsp.buf.format({ async = true })
-  end, '[F]ormat doc')
-  lsp_map({ 'n', 'v' }, '<F6>', vim.diagnostic.hide, 'Hide LSP suggestions')
-  lsp_map({ 'n', 'v' }, '<space>e', vim.diagnostic.open_float, 'Show Diagnostic')
-  lsp_map({ 'n', 'v' }, '[d', vim.diagnostic.goto_prev, 'Previous Diagnostic')
-  lsp_map({ 'n', 'v' }, ']d', vim.diagnostic.goto_next, 'Next Diagnostic')
-  lsp_map({ 'n', 'v' }, '<space>q', vim.diagnostic.setloclist, 'Diagnostic List')
-  lsp_map({ 'n', 'v' }, 'gr', telescope.lsp_references, 'Go to [R]eferences')
-  lsp_map({ 'n', 'v' }, '<space>qf', telescope.quickfix, '[Q]uickfix')
-  lsp_map({ 'n', 'v' }, '<space>ws', telescope.lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
-  lsp_map({ 'n', 'v' }, '<space>ds', telescope.lsp_document_symbols, '[D]ocument [S]ymbols')
-end
-
-lsp_zero.on_attach(on_attach)
-
-local lsp_flags = {
-  debounce_text_changes = 150,
-}
+------------- Diagnostics ----------------
 
 vim.diagnostic.config({
   virtual_text = true,
@@ -82,7 +59,9 @@ vim.diagnostic.config({
   },
 })
 
-local ensure_installed = {
+------------- Mason Setup ----------------
+
+local servers = {
   'pyright',
   'ts_ls',
   'gopls',
@@ -91,43 +70,47 @@ local ensure_installed = {
   'jsonls',
 }
 
--- Mason Setup
 require("mason").setup({})
 require("mason-lspconfig").setup({
-  ensure_installed = ensure_installed,
+  ensure_installed = servers,
   automatic_installation = true,
 })
-lsp_zero.setup_servers(ensure_installed)
 
+------------- LSP Server Config (Neovim 0.11+ native API) ----------------
+
+local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
+
+-- Global defaults for all servers
+vim.lsp.config('*', {
+  capabilities = capabilities,
+})
+
+-- lua_ls specific config
 if vim.fn.executable('lua-language-server') == 1 then
-  lsp_config.lua_ls.setup {
-    -- REPO: https://github.com/LuaLS/lua-language-server
-    capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities()),
-    -- on_attach = on_attach,
-    flags = lsp_flags,
+  vim.lsp.config('lua_ls', {
     settings = {
       Lua = {
         completion = {
           callSnippet = "Replace",
         },
         runtime = {
-          -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
           version = 'LuaJIT',
         },
         diagnostics = {
-          -- Get the language server to recognize the `vim` global
           globals = { 'vim' },
         },
         workspace = {
-          -- Make the server aware of Neovim runtime files
           library = vim.api.nvim_get_runtime_file("", true),
           checkThirdParty = false,
         },
-        -- Do not send telemetry data containing a randomized but unique identifier
         telemetry = {
           enable = false,
         },
       },
     },
-  }
+  })
+  table.insert(servers, 'lua_ls')
 end
+
+-- Enable all configured servers
+vim.lsp.enable(servers)
