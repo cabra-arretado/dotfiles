@@ -1,8 +1,9 @@
-# This is just a base, should not be used with Stow.
+# This is a model file. Copy/paste the settings you want into your real ~/.gitconfig.
+# Do not symlink this file with Stow.
 [user]
   name = Felipe
   email = 80273544+cabra-arretado@users.noreply.github.com
-# Please adapt and uncomment the following lines:
+# Please adapt the following lines to your environment:
 [credential]
   helper = osxkeychain
 [push]

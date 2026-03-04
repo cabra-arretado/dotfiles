@@ -12,4 +12,3 @@ for i in "${links[@]}"
 do
     stow -D $i
 done
-
