@@ -20,7 +20,7 @@ With that done, we will use [Stow](https://dbeley.ovh/en/post/2021/01/09/easily-
 ### Git global ignore setup
 Configure Git once to use the global ignore file from this repo:
 ```sh
-git config --global core.excludesfile ~/.dotfiles/git/.gitignore_global
+git config --global core.excludesfile ~/dotfiles/git/.gitignore_global
 ```
 
 ### Shell aliases setup
