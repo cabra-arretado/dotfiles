@@ -1,5 +1,6 @@
 local wezterm = require 'wezterm'
 local sessionizer = require("sessionizer")
+local act = wezterm.action
 
 local config = wezterm.config_builder()
 
@@ -33,7 +34,16 @@ config.audible_bell = "Disabled"
 
 config.leader = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 }
 
-config.keys = {
+config.mouse_bindings = {
+  -- Make triple click select the shell integration semantic zone instead of a single line.
+  {
+    event = { Down = { streak = 3, button = "Left" } },
+    mods = "NONE",
+    action = wezterm.action.SelectTextAtMouseCursor("SemanticZone"),
+  },
+}
+
+local keys = {
 
   ----------------- Multiplexing -----------------
   -- Pane splitting
@@ -61,5 +71,26 @@ config.keys = {
   { key = "f", mods = "LEADER", action = wezterm.action_callback(sessionizer.toggle) },
   { key = "F", mods = "LEADER", action = wezterm.action_callback(sessionizer.resetCacheAndToggle) },
 }
+
+if wezterm.has_action("PromptInputLine") then
+  table.insert(keys, {
+    key = "t",
+    mods = "LEADER",
+    action = act.PromptInputLine({
+      description = "Enter name for new workspace",
+      action = wezterm.action_callback(function(window, pane, line)
+        local name = line and line:match("^%s*(.-)%s*$")
+        if name and name ~= "" then
+          window:perform_action(
+            act.SwitchToWorkspace({ name = name }),
+            pane
+          )
+        end
+      end),
+    }),
+  })
+end
+
+config.keys = keys
 
 return config
