@@ -44,7 +44,12 @@ return require('lazy').setup({
     'j-hui/fidget.nvim',
     opts = {}
   },
-  { 'nvim-treesitter/nvim-treesitter' },
+  {
+    'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
+    lazy = false,
+    build = ':TSUpdate',
+  },
   { 'folke/trouble.nvim' },
   { 'nvim-lua/plenary.nvim' },
   {

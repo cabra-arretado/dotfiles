@@ -4,8 +4,16 @@ if not ok then
   return
 end
 
+local has_treesitter_parser_manager = (function()
+  local ts_ok, treesitter = pcall(require, "nvim-treesitter")
+  return ts_ok and type(treesitter.install) == "function"
+end)()
+
 telescope.setup {
   defaults = {
+    preview = {
+      treesitter = has_treesitter_parser_manager,
+    },
     vimgrep_arguments = {
       "rg",
       "--color=never",
