@@ -3,6 +3,13 @@ local map = require("utils").map
 -- Overwrite the :w to call the function Save_file()
 vim.cmd("command! W lua Save_file()")
 vim.cmd [[cnoreabbrev w W]]
+vim.api.nvim_create_user_command('Json', function()
+  vim.bo.filetype = 'json'
+  local name = os.date('%Y-%m-%d_%H-%M-%S') .. '-nvim.json'
+  vim.api.nvim_buf_set_name(0, name)
+  vim.lsp.buf.format({ async = true })
+end, {})
+vim.cmd [[cnoreabbrev <expr> json getcmdtype() == ':' && getcmdline() == 'json' ? 'Json' : 'json']]
 
 --General
 map({ 'n', 'v', 't' }, ';', ':')
