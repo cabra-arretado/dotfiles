@@ -10,6 +10,16 @@ vim.api.nvim_create_user_command('Json', function()
   vim.lsp.buf.format({ async = true })
 end, {})
 vim.cmd [[cnoreabbrev <expr> json getcmdtype() == ':' && getcmdline() == 'json' ? 'Json' : 'json']]
+vim.api.nvim_create_user_command('Yq', function()
+  if #vim.fn.getbufinfo({ buflisted = 1 }) ~= 1 then
+    vim.notify('yq requires exactly one open buffer', vim.log.levels.ERROR)
+    return
+  end
+
+  vim.cmd('%yank +')
+  vim.cmd('quitall!')
+end, {})
+vim.cmd [[cnoreabbrev <expr> yq getcmdtype() == ':' && getcmdline() == 'yq' ? 'Yq' : 'yq']]
 
 --General
 map({ 'n', 'v', 't' }, ';', ':')

@@ -39,6 +39,9 @@ opt.listchars:append "eol:↴" -- other options( ↩ , ↴ , ↵ )
 opt.listchars:append "trail:·"
 opt.breakindent = true
 opt.linebreak = true
+opt.foldenable = true
+opt.foldlevel = 99
+opt.foldlevelstart = 99
 g.mapleader = ','
 g.maplocalleader = '\\'
 g.markdown_remmended_style = 0
