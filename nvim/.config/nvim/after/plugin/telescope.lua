@@ -109,6 +109,140 @@ telescope.setup {
 -- Mappings
 local map = require("utils").map
 local telescope_builtin = require('telescope.builtin')
+local actions = require('telescope.actions')
+local action_state = require('telescope.actions.state')
+local conf = require('telescope.config').values
+local finders = require('telescope.finders')
+local pickers = require('telescope.pickers')
+
+local function cheatsheet()
+  local entries = {}
+  local modes = { 'n', 'i', 'l', 'v', 'x', 's', 'o', 'c', 't' }
+
+  local function add_keymaps(keymaps, scope)
+    for _, keymap in ipairs(keymaps) do
+      local description = keymap.desc or keymap.rhs
+      if not description or description == '' then
+        description = '[Lua callback]'
+      end
+
+      table.insert(entries, {
+        kind = 'keymap',
+        lhs = keymap.lhs,
+        mode = keymap.mode,
+        scope = scope,
+        description = description,
+      })
+    end
+  end
+
+  for _, mode in ipairs(modes) do
+    add_keymaps(vim.api.nvim_get_keymap(mode), 'global')
+    add_keymaps(vim.api.nvim_buf_get_keymap(0, mode), 'buffer')
+  end
+
+  for _, command in ipairs(vim.fn.getcompletion('', 'command')) do
+    table.insert(entries, {
+      kind = 'command',
+      name = command,
+    })
+  end
+
+  for _, entry in ipairs(require('cheatsheet')) do
+    entry.kind = 'custom'
+    table.insert(entries, entry)
+  end
+
+  pickers.new({}, {
+    prompt_title = 'Keymaps and Commands',
+    finder = finders.new_table({
+      results = entries,
+      entry_maker = function(entry)
+        if entry.kind == 'keymap' then
+          local display = string.format(
+            '[map:%s:%s] %-18s %s',
+            entry.mode,
+            entry.scope,
+            entry.lhs,
+            entry.description
+          )
+
+          return {
+            value = entry,
+            display = display,
+            ordinal = table.concat({
+              'map', entry.mode, entry.scope, entry.lhs, entry.description,
+            }, ' '),
+          }
+        end
+
+        if entry.kind == 'custom' then
+          local action = entry.keys or (entry.command and ':' .. entry.command) or ''
+          local display = string.format(
+            '[custom:%s] %-18s %s',
+            entry.category or 'note',
+            action,
+            entry.description
+          )
+
+          return {
+            value = entry,
+            display = display,
+            ordinal = table.concat({
+              'custom',
+              entry.category or 'note',
+              entry.mode or '',
+              action,
+              entry.description,
+            }, ' '),
+          }
+        end
+
+        return {
+          value = entry,
+          display = '[command] :' .. entry.name,
+          ordinal = 'command ' .. entry.name,
+        }
+      end,
+    }),
+    sorter = conf.generic_sorter({}),
+    attach_mappings = function(prompt_bufnr)
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
+        if not selection then
+          return
+        end
+
+        if selection.value.kind == 'keymap' or selection.value.keys then
+          vim.api.nvim_feedkeys(
+            vim.api.nvim_replace_termcodes(
+              selection.value.lhs or selection.value.keys,
+              true,
+              false,
+              true
+            ),
+            't',
+            true
+          )
+          actions.close(prompt_bufnr)
+          return
+        end
+
+        actions.close(prompt_bufnr)
+        local command = selection.value.name or selection.value.command
+        if command then
+          vim.api.nvim_feedkeys(':' .. command .. ' ', 'nt', false)
+        end
+      end)
+
+      return true
+    end,
+  }):find()
+end
+
+vim.api.nvim_create_user_command('Cheatsheet', cheatsheet, {
+  desc = 'Search all keymaps and commands',
+})
 
 -- Builtin
 map({ 'n', 'v' }, '<leader>sg', telescope_builtin.git_files, { desc = '[S]earch [F]iles in Git' })
